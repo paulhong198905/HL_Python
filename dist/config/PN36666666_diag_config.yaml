@@ -1,6 +1,0 @@
-# \config\PN36666666_diag_config.yaml
-
-diag_config_data:
-  ECU_Address: 0x7E0
-  Standard_Session: "0x1003"
-  Communication_Baud: 500000
