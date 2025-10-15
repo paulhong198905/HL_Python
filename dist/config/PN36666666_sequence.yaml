@@ -1,0 +1,18 @@
+# \config\PN36666666_sequence.yaml
+
+# This file is loaded as 'sequence_data' and is a list of steps.
+
+- name: "Initial Power Supply Check"
+  type: "IO_TEST"
+
+- name: "Validate CAN Bus Ping"
+  type: "COMM_CHECK"
+
+- name: "Read and Verify Configuration Data"
+  type: "DIAG_CHECK"
+
+- name: "Apply Power Mode RUN Signal (CAN dependent)"
+  type: "CAN_INJECT"
+
+- name: "Final Diagnostic Check"
+  type: "DIAG_CHECK"

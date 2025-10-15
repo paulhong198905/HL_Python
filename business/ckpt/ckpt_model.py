@@ -20,6 +20,11 @@ class CkptModel(QObject):
     # Dedicated signal for the Wiring Harness Test final result
     sig_wh_test_result = Signal(str, str)  # (result_message, color_flag)
 
+
+
+    BYPASS_WH_TEST: bool = True
+
+
     def __init__(self):
         super().__init__()
         self.config_manager = ConfigManager()
@@ -135,16 +140,35 @@ class CkptModel(QObject):
 
                 # Launch the Wiring Harness Test (HARDWARE_TEST)
                 if worker_id == 'HARDWARE_TEST':
-                    worker = WhTestWorker(config_filepath=file_path, worker_id=worker_id)
 
-                    # Connect worker signals
-                    worker.sig_test_finished.connect(self._handle_worker_finished)
-                    worker.sig_progress_updated.connect(self._handle_worker_progress)
+                    # If Run WH test
+                    if not self.BYPASS_WH_TEST:
+                        print("TODO: wh continuity test")
+                        worker = WhTestWorker(config_filepath=file_path, worker_id=worker_id)
 
-                    # Start the thread and track it
-                    self.active_workers[worker_id] = worker
-                    worker.start()
-                    print(f"CKPT Model: Started WH Test Worker ID: {worker_id}")
+                        # Connect worker signals
+                        worker.sig_test_finished.connect(self._handle_worker_finished)
+                        worker.sig_progress_updated.connect(self._handle_worker_progress)
+
+                        # Start the thread and track it
+                        self.active_workers[worker_id] = worker
+                        worker.start()
+                        print(f"CKPT Model: Started WH Test Worker ID: {worker_id}")
+
+                    # If BYPASS WH test
+                    if self.BYPASS_WH_TEST:
+                        print("BYPASS WH continuity test. Not starting worker.")
+
+                        # 1. DO NOT ADD WORKER to self.active_workers
+                        #    This is handled automatically because we use 'continue' or skip the worker creation.
+
+                        # 2. UPDATE THE UI STATUS using the dedicated signal
+                        # Use the signal to update the UI label status to indicate the bypass was successful.
+                        self.sig_wh_test_result.emit("bypassed wh tests", 'bypass')
+                        continue
+
+
+
 
                 else:
                     print(f"CKPT Model: Worker ID {worker_id} skipped (not yet implemented).")

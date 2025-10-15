@@ -2,7 +2,7 @@
 
 
 a = Analysis(
-    ['main_UI.py'],
+    ['main.py'],
     pathex=[],
     binaries=[],
     datas=[],
@@ -22,7 +22,7 @@ exe = EXE(
     a.binaries,
     a.datas,
     [],
-    name='VAA_TEST',
+    name='VAA_Test',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,

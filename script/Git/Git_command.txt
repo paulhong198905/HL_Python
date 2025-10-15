@@ -1,0 +1,13 @@
+
+
+
+
+working_directory --> staging_area --> committed repository
+
+git diff:
+    difference between working_directory and staging_area
+
+
+
+git add .
+    Stage everything,

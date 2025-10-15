@@ -105,8 +105,10 @@ class MainController(QObject):
             color = 'green'
         elif color_flag == 'fail':
             color = 'red'
+        elif color_flag == 'bypass':
+            color = 'yellow'
         else:
-            color = 'yellow'  # Should not happen, but safe to include
+            color = 'gray'  # Should not happen, but safe to include
 
         # Delegate the actual UI update to the View
         self.view.update_wh_result_label(result_message, color)

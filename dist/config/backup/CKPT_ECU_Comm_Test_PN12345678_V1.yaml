@@ -1,0 +1,78 @@
+# Vehicle CAN signal test configuration
+program: "CKPT_ECU_Comm_Test_PN12345678_V1"
+version: "V1"
+author: "FirstName LastName"
+date: "2025-09-23"
+
+# Cockpit part numbers this config applies to
+cockpit_PN:
+  - 12345678
+  - 87654321
+
+  
+  
+# CAN signal monitoring and decoding
+signals:
+  - test_name: "Vehicle_Power_Mode"
+    can_id: 0x111
+    start_byte: 6
+    start_bit: 0
+    bit_length: 2
+    decode_type: "stateEncoded"
+    values:
+      0: "OFF"
+      1: "ACC"
+      2: "RUN"
+      3: "CRANK"
+    constraints:
+      allowed: ["OFF", "RUN"]          # Only these are valid in this test
+      forbidden: ["ACC", "CRANK"]      # Optional: explicitly disallow
+    error_message: "Power mode not as expected"
+    calculation: null
+    raw_match: null
+
+  # - test_name: "Wiper_State"
+    # can_id: 0x200
+    # start_byte: 3
+    # start_bit: 0
+    # bit_length: 2
+    # decode_type: "stateencode"
+    # values:
+      # 0: "OFF"
+      # 1: "SLOW"
+      # 2: "FAST"
+      # 3: "AUTO"
+    # constraints:
+      # allowed: ["OFF", "SLOW", "FAST"]  # Example subset
+    # error_message: "Wiper state mismatch"
+    # calculation: null
+    # raw_match: null
+
+  # - test_name: "Battery_Voltage"
+    # can_id: 0x300
+    # start_byte: 2
+    # start_bit: 0
+    # bit_length: 8
+    # decode_type: "linear"
+    # values: {}
+    # calculation:
+      # a: 0.1     # scaling factor
+      # b: 0.0     # offset
+    # constraints:
+      # min: 11.5   # acceptable voltage window
+      # max: 14.5
+    # error_message: "Battery voltage out of expected range"
+    # raw_match: null
+
+  # - test_name: "VIN_Response"
+    # can_id: 0x7E8
+    # start_byte: 0
+    # start_bit: 0
+    # bit_length: 0
+    # decode_type: "rawbyte"
+    # values: {}
+    # raw_match: [0x49, 0x02, 0x01]     # Expected header bytes
+    # constraints:
+      # exact: true                     # require exact match
+    # error_message: "VIN did not match expected"
+    # calculation: null

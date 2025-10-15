@@ -1,3 +1,5 @@
+pyinstaller --onefile --name VAA_Test main.py
+
 pyinstaller --onefile --name PCAN_Test main.py
 
 pyinstaller --onefile --name VAA_TEST tests/test_UI/main_UI.py
