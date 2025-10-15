@@ -1,0 +1,32 @@
+# \config\PN36666666_validation.yaml
+
+tests:
+  - name: "PowerMode_Test"
+    signal: "Vehicle_Power_Mode"
+    required_states: ["OFF", "RUN"]
+    require_final: "RUN"
+
+  - name: "WiperFront_Test"
+    signal: "Windshield_Wiper_Switch_Status"
+    # required_states: ["OFF", "INTERMITTENT", "LOW"]
+    required_states: ["OFF", "INTERMITTENT", "LOW"]
+    require_final: "OFF"
+
+  - name: "IgnitionVoltage_Test"
+    signal: "Ignition_Voltage"
+    range:
+      min: 11.5
+      max: 14.5
+
+      
+      
+      
+      
+      
+      
+      
+      
+0: "OFF"
+1: "INTERMITTENT"
+2: "LOW"
+3: "HIGH"
