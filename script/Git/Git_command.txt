@@ -10,4 +10,19 @@ git diff:
 
 
 git add .
-    Stage everything,
+    Stage everything, from working directory
+
+
+
+git diff --cached
+    shows the staged changes that will go into your next commit
+
+git commit -m "COMMENT_COMMENT_COMMENT"
+    Moves everything from the staging area into a *Branch* commit
+
+
+git diff --stat master..BRANCH_NAME
+    Compare branch committed with master
+            git log master..ADD_IO_TEST_SWITCH       # see new commits
+            git diff master..ADD_IO_TEST_SWITCH      # see code changes
+            git diff --stat master..ADD_IO_TEST_SWITCH  # summary of changed files
