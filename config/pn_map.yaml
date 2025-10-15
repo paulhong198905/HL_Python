@@ -1,0 +1,27 @@
+# config/pn_map.yaml
+# File containing the mapping of Part Numbers (PN) to configuration files.
+
+part_numbers:
+  
+  # PN for U557 NS-1 (Example 1)
+  "36666666":
+    description: "U557 NS-1 Assembly"
+    program_name: "U557 NS-1"
+    sequence_file: "PN36666666_sequence.yaml"
+    wh_config_file: "PN36666666_wh_config.yaml"
+    diag_config_file: "PN36666666_diag_config.yaml"
+    can_decode_file: "PN36666666_can_decode.yaml"
+  
+  # PN for C1UL NS-1 (Example 2)
+  "75225896":
+    description: "C1UL NS-1 Assembly"
+    program_name: "C1UL NS-1"
+    sequence_file: "PN75225896_sequence.yaml" # Updated filename to match PN
+    wh_config_file: "PN75225896_wh_config.yaml" # Updated filename to match PN
+    diag_config_file: "PN75225896_diag_config.yaml" # Updated filename to match PN
+    can_decode_file: "PN75225896_can_decode.yaml" # Updated filename to match PN
+
+  # Invalid PN example (Missing program_name, should trigger a 'fail' status)
+  "PN00000000":
+    description: "PN Missing Program Name"
+    wh_config_file: "empty.yaml"

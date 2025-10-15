@@ -1,0 +1,156 @@
+# business/ckpt/ckpt_model.py
+
+from typing import Dict, Any, Optional
+from PySide6.QtCore import QObject, Signal, QThread
+from business.ckpt.config_manager import ConfigManager, ConfigurationError
+import time
+
+from business.workers.wh_test_worker import WhTestWorker
+
+
+class CkptModel(QObject):
+    # Phase 1 Signal: Program Name Check Result
+    sig_pn_check_result = Signal(str, str)  # (message, color_flag: 'success' or 'fail')
+
+    # Phase 2 Signals: Worker progress (relayed to Controller/UI)
+    sig_test_progress = Signal(str, int)
+    sig_test_finished = Signal(bool, str)
+
+    # Dedicated signal for the Wiring Harness Test final result
+    sig_wh_test_result = Signal(str, str)  # (result_message, color_flag)
+
+    def __init__(self):
+        super().__init__()
+        self.config_manager = ConfigManager()
+        self.current_pn_config: Dict[str, Any] = {}
+        self.worker_input_map: Dict[str, str] = {}   # For parallel input paths
+        self.active_workers: Dict[str, QThread] = {} # Use a dictionary to track multiple active workers
+        self.test_statuses: Dict[str, Any] = {}
+
+    def check_pn_and_get_program_name(self, pn: str) -> None:
+        """PHASE 1: Quick check of PN against the map and displays status."""
+        print(f"CKPT Model: PHASE 1 - Checking PN: {pn}")
+
+        try:
+            # pn is passed as a string (e.g., '36666666'), matching the YAML keys.
+            program_name = self.config_manager.get_program_name(pn)
+
+            if program_name == 'UNKNOWN_PROGRAM_KEY_MISSING':
+                self.current_pn_config = {}
+                print("CKPT Model Error: Program Name key missing in map entry.")
+                self.sig_pn_check_result.emit("PROG NAME MISSING", 'fail')
+                return
+
+            # Success: Store minimal info for Phase 2
+            self.current_pn_config = {'pn': pn}
+            print(f"CKPT Model: Quick check SUCCESS for Program: {program_name}")
+            self.sig_pn_check_result.emit(program_name, 'success')
+
+        except ConfigurationError as e:
+            self.current_pn_config = {}
+            print(f"CKPT Model: Configuration Load Error: {e}")
+            self.sig_pn_check_result.emit("PN NOK", 'fail')
+
+    def _prepare_worker_inputs(self, filenames_map: Dict[str, Any]) -> Dict[str, str]:
+        """Creates the mapping from worker ID to its required configuration file path."""
+        worker_map = {}
+
+        # We define a mapping from the file key in pn_map.yaml to the unique worker ID
+        KEY_TO_WORKER_ID = {
+            # File Key      :  Worker ID
+            'wh_config_file': 'HARDWARE_TEST',
+            'diag_config_file': 'DIAGNOSTIC_TEST',
+            'can_decode_file': 'CAN_DECODE_TEST',
+        }
+
+        for file_key, worker_id in KEY_TO_WORKER_ID.items():
+            filename = filenames_map.get(file_key)
+            if filename:
+                # Store the file path (e.g., 'config/u557/diag.yaml')
+                worker_map[worker_id] = f"config/{filename}"
+
+        return worker_map
+
+    def _handle_worker_progress(self, message: str, percentage: int, worker_id: str):
+        """Relay progress from any worker to the main status bar (sig_test_progress)."""
+        # Relay directly to the main status bar/progress indicator
+        self.sig_test_progress.emit(f"[{worker_id}] {message}", percentage)
+        
+    def _handle_worker_finished(self, success: bool, result_msg: str, worker_id: str):
+        """Handle the final result from a worker thread."""
+        print(f"Worker {worker_id} finished. Success: {success}. Msg: {result_msg}")
+
+        # 1. Emit a specific signal for the Controller to update the UI label
+        color_flag = 'success' if success else 'fail'
+        self.sig_wh_test_result.emit(result_msg, color_flag)
+
+        # 2. Clean up the worker
+        if worker_id in self.active_workers:
+            self.active_workers[worker_id].quit() # Request thread to exit its event loop
+            self.active_workers[worker_id].wait(100) # Wait up to 100ms for clean exit
+            del self.active_workers[worker_id]
+        
+        # 3. Check if all workers are done (optional, for later overall status)
+        if not self.active_workers:
+            print("CKPT Model: All workers completed.")
+            # self.sig_test_finished.emit(True, "All tests complete.")
+
+
+    def start_test_sequence(self):
+        """PHASE 2: Gathers config file paths and prepares to launch parallel workers."""
+        pn = self.current_pn_config.get('pn')
+        if not pn:
+            self.sig_test_finished.emit(False, "Error: No valid PN loaded. Scan PN first.")
+            return
+
+        if self.active_workers:
+            print("CKPT Model: Test already running. Ignoring start request.")
+            return
+
+        print(f"CKPT Model: PHASE 2 - Gathering config file paths for PN: {pn}")
+        self.sig_test_progress.emit("Mapping configuration files to test modules...", 5)
+
+        try:
+            # 1. Get the list of filenames for this PN from the map
+            filenames_map = self.config_manager.get_pn_config_filenames(pn)
+            self.worker_input_map = self._prepare_worker_inputs(filenames_map)
+
+            # 2. Update minimal config details for status tracking.
+            self.current_pn_config.update({
+                'program_name': filenames_map.get('program_name'),
+                'description': filenames_map.get('description', 'No Description')
+            })
+
+            self.sig_test_progress.emit("Worker inputs prepared. Initializing Parallel Tests...", 10)
+            time.sleep(0.5)
+
+            # Log map content
+            print(f"CKPT Model: SUCCESSFULLY MAPPED {len(self.worker_input_map)} TEST MODULES. STARTING PARALLEL THREAD CREATION.")
+            print("CKPT Model: Worker Input Map Content:")
+            
+            # 3. Launch the Parallel Workers
+            for worker_id, file_path in self.worker_input_map.items():
+                print(f"  - {worker_id:<20}: {file_path}")
+
+                # Launch the Wiring Harness Test (HARDWARE_TEST)
+                if worker_id == 'HARDWARE_TEST':
+                    worker = WhTestWorker(config_filepath=file_path, worker_id=worker_id)
+                    
+                    # Connect worker signals
+                    worker.sig_test_finished.connect(self._handle_worker_finished)
+                    worker.sig_progress_updated.connect(self._handle_worker_progress)
+
+                    # Start the thread and track it
+                    self.active_workers[worker_id] = worker
+                    worker.start()
+                    print(f"CKPT Model: Started WH Test Worker ID: {worker_id}")
+                
+                else:
+                    print(f"CKPT Model: Worker ID {worker_id} skipped (not yet implemented).")
+
+
+        except ConfigurationError as e:
+            error_message = f"Error during Phase 2 loading: {e}"
+            print(f"CKPT Model Error: {error_message} (PN: {pn})")
+            self.sig_test_finished.emit(False, error_message)
+            self.sig_test_progress.emit("Configuration Load Failed.", 100)

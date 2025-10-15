@@ -1,0 +1,90 @@
+Coding Requirement: State Checker for Cockpit Validation Tool
+1. Purpose
+
+Implement a reusable StateChecker component that validates whether required signal states (e.g., wiper OFF/INT/LOW/HIGH) have been observed at least once during a test, and whether the final state meets expectations (e.g., wiper returns to OFF).
+
+The design should also allow future extension to continuous value checks (e.g., pedal travel).
+
+2. Scope
+
+Input source: CAN bus frames (TPCANMsgFD) decoded into higher-level signals.
+
+Use case: Vehicle cockpit validation (technician loops through required states).
+
+Integration: Works inside existing SignalDecoder thread logic.
+
+3. Class & Function Definitions
+Class: StateChecker
+
+Responsibilities:
+
+Maintain a record of required discrete states for a given signal.
+
+Track which states have been seen.
+
+Verify final state.
+
+Provide a summary result (pass/fail + details).
+
+Constructor:
+__init__(self, signal_name: str, required_states: list[str], final_required_state: Optional[str] = None)
+
+Functions:
+
+update(self, value: str) -> None
+
+Record that a new signal state was observed.
+
+all_states_seen(self) -> bool
+
+Return True if all required states were observed at least once.
+
+final_state_ok(self) -> bool
+
+Return True if the last observed state matches final_required_state (if defined).
+
+result(self) -> dict
+
+Return summary: { "signal": name, "all_seen": bool, "final_ok": bool, "missing": [..], "last_state": value }.
+
+Class: ValidationManager
+
+Responsibilities:
+
+Manage multiple StateChecker instances (one per signal under test).
+
+Collect results at the end of a test.
+
+Provide hooks for future raw/continuous checkers (e.g., RangeChecker).
+
+Functions:
+
+register_checker(self, checker: StateChecker) -> None
+
+update_signal(self, signal_name: str, value: Any) -> None
+
+Dispatch new values to the right checker.
+
+get_results(self) -> dict
+
+Aggregate all checker results into one report.
+
+4. Functional Requirements
+
+FR1: The system shall record all required states for each signal under test.
+
+FR2: The system shall verify that all required states have been observed at least once.
+
+FR3: The system shall verify that the last state matches a required final state (if applicable).
+
+FR4: The system shall log any missing states at test completion.
+
+FR5: The system shall allow registering multiple signals (e.g., wiper, ignition mode, seatbelt state).
+
+5. Non-Functional Requirements
+
+NFR1: The checker shall be lightweight and thread-safe (only shared through SignalDecoder updates).
+
+NFR2: The code shall be structured to allow easy extension for continuous value checks (future RangeChecker).
+
+NFR3: The design shall remain decoupled from the CAN API (StateChecker only works with decoded values).

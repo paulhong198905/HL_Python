@@ -1,0 +1,2 @@
+Folder Structure: powershell
+tree "C:\Python_Projects\HL_Python" /f > folder_structure.txt

@@ -1,0 +1,10 @@
+TODO:
+    1. CAN BUS certain bit decode, for example 0x111 byte7 bit0-1 powermode decode.
+    2. PN_map.yaml test, see it work as expected or not. current function, update program info
+    3.
+
+
+TODO minor:
+    1. IO test update, for test report testing environment, and test paramter runtimeupdate
+    2.
+    3. Learn about how the response is decoded.

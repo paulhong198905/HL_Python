@@ -1,0 +1,13 @@
+pyinstaller --onefile --name PCAN_Test main.py
+
+pyinstaller --onefile --name VAA_TEST tests/test_UI/main_UI.py
+
+Recent OK:
+    1. test_monitor_thread.py CANFD bus can send both CAN + CANFD message,
+
+
+
+
+pyinstaller --onefile --name PCAN_Test_WKM Try_run/Air_WKM/udsoncan_springtest.py
+pyinstaller --onefile --name PCI_1750_Test main.py
+pyinstaller --onefile --name PCAN_Test Try_run/Temp/main_Try_Run.py
