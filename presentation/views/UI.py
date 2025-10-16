@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-## Form generated from reading UI file '_31_UI_2025_10_14.ui'
+## Form generated from reading UI file '_32_UI_2025_10_16.ui'
 ##
 ## Created by: Qt User Interface Compiler version 6.2.0
 ##
@@ -163,6 +163,21 @@ class Ui_MainWindow(object):
         sizePolicy6.setVerticalStretch(5)
         sizePolicy6.setHeightForWidth(self.QFrame_Tests_3.sizePolicy().hasHeightForWidth())
         self.QFrame_Tests_3.setSizePolicy(sizePolicy6)
+        self.lbl_PowerMode_Off = QLabel(self.QFrame_Tests_3)
+        self.lbl_PowerMode_Off.setObjectName(u"lbl_PowerMode_Off")
+        self.lbl_PowerMode_Off.setGeometry(QRect(10, 10, 101, 31))
+        self.lbl_PowerMode_Run = QLabel(self.QFrame_Tests_3)
+        self.lbl_PowerMode_Run.setObjectName(u"lbl_PowerMode_Run")
+        self.lbl_PowerMode_Run.setGeometry(QRect(130, 10, 101, 31))
+        self.lbl_Wiper_Off = QLabel(self.QFrame_Tests_3)
+        self.lbl_Wiper_Off.setObjectName(u"lbl_Wiper_Off")
+        self.lbl_Wiper_Off.setGeometry(QRect(10, 60, 101, 31))
+        self.lbl_Wiper_Intermittent = QLabel(self.QFrame_Tests_3)
+        self.lbl_Wiper_Intermittent.setObjectName(u"lbl_Wiper_Intermittent")
+        self.lbl_Wiper_Intermittent.setGeometry(QRect(130, 60, 101, 31))
+        self.lbl_Wiper_Slow = QLabel(self.QFrame_Tests_3)
+        self.lbl_Wiper_Slow.setObjectName(u"lbl_Wiper_Slow")
+        self.lbl_Wiper_Slow.setGeometry(QRect(260, 60, 101, 31))
 
         self.verticalLayout_2.addWidget(self.QFrame_Tests_3)
 
@@ -186,6 +201,9 @@ class Ui_MainWindow(object):
         self.QFrame_Malfunction_Left.setSizePolicy(sizePolicy8)
         self.QFrame_Malfunction_Left.setFrameShape(QFrame.StyledPanel)
         self.QFrame_Malfunction_Left.setFrameShadow(QFrame.Raised)
+        self.lbl_Wiper_CurrentState = QLabel(self.QFrame_Malfunction_Left)
+        self.lbl_Wiper_CurrentState.setObjectName(u"lbl_Wiper_CurrentState")
+        self.lbl_Wiper_CurrentState.setGeometry(QRect(10, 10, 101, 31))
 
         self.horizontalLayout_Malfunction.addWidget(self.QFrame_Malfunction_Left)
 
@@ -439,6 +457,12 @@ class Ui_MainWindow(object):
         self.PN_Value_LineEdit.setPlaceholderText(QCoreApplication.translate("MainWindow", u"*\u626b\u63cf\u96f6\u4ef6\u53f7*", None))
         self.Program_Title_Label.setText(QCoreApplication.translate("MainWindow", u"\u9879\u76ee:", None))
         self.QLabel_ProgramName.setText("")
+        self.lbl_PowerMode_Off.setText(QCoreApplication.translate("MainWindow", u"PM_Off", None))
+        self.lbl_PowerMode_Run.setText(QCoreApplication.translate("MainWindow", u"PM_Run", None))
+        self.lbl_Wiper_Off.setText(QCoreApplication.translate("MainWindow", u"Wiper_Off", None))
+        self.lbl_Wiper_Intermittent.setText(QCoreApplication.translate("MainWindow", u"Wiper_Intermittent", None))
+        self.lbl_Wiper_Slow.setText(QCoreApplication.translate("MainWindow", u"Wiper_Slow", None))
+        self.lbl_Wiper_CurrentState.setText(QCoreApplication.translate("MainWindow", u"Wiper_CurrentState", None))
         self.Label_continuity_result.setText(QCoreApplication.translate("MainWindow", u"Continuity Result", None))
         self.pushButton_STOP.setText(QCoreApplication.translate("MainWindow", u"\u6025\u505c", None))
         self.pushButton_Start_REDO_.setText(QCoreApplication.translate("MainWindow", u"\u542f\u52a8/\u91cd\u6d4b", None))

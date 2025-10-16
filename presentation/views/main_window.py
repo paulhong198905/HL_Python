@@ -25,6 +25,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):  # Inherit from the generated UI c
         self.update_test_status("Application Initialized. Ready to scan PN.", 'black')
         self.enable_start_button(False)
 
+        # Initialize CAN indicator styles to their default 'never hit' state (Yellow/Off)
+        self._initialize_can_indicators()
+
         # 3. Connect UI elements if the controller is already available
         if self.controller:
             self._connect_ui()
@@ -75,7 +78,31 @@ class MainWindow(QMainWindow, Ui_MainWindow):  # Inherit from the generated UI c
         if hasattr(self, 'QLabel_DateTime'):
             self.QLabel_DateTime.setText(current_datetime)
 
-    # --- UI Update Methods ---
+    # --- NEW HELPER METHOD ---
+
+    def _get_widget_by_name(self, object_name: str):
+        """Helper function to retrieve a QLabel widget by its object name."""
+        # The QMainWindow base class provides findChild
+        widget = self.findChild(QLabel, object_name)
+        if widget is None:
+            print(f"Warning: QLabel with object name '{object_name}' not found.")
+        return widget
+
+    def _initialize_can_indicators(self):
+        """Sets the initial (untouched) style for all indicator labels to Yellow."""
+        indicator_labels = [
+            "lbl_PowerMode_Off", "lbl_PowerMode_Run",
+            "lbl_Wiper_Off", "lbl_Wiper_Intermittent", "lbl_Wiper_Slow"
+        ]
+
+        # Set the initial text for the current state label
+        self.update_label_text("lbl_Wiper_CurrentState", "WIPER: UNKNOWN")
+
+        # Use the update method to set initial styles (Yellow, not active)
+        for name in indicator_labels:
+            self.update_indicator_status(name, 'yellow', False)
+
+    # --- UI Update Methods (Existing) ---
 
     def update_program_name_display(self, message: str, color: str):
         """Updates the large Program Name/PN Status label (QLabel_ProgramName)."""
@@ -120,10 +147,87 @@ class MainWindow(QMainWindow, Ui_MainWindow):  # Inherit from the generated UI c
         )
 
         # 3. Update the label text and style
-        # CRITICAL: This line uses the QLabel object name 'Label_continuity_result'
         if hasattr(self, 'Label_continuity_result'):
             self.Label_continuity_result.setText(message)
             self.Label_continuity_result.setStyleSheet(style)
         else:
-            # If the object name is wrong or the label wasn't loaded from the .ui file:
             print(f"UI Error: Label_continuity_result object not found. Message: {message}")
+
+    # --- NEW UI UPDATE METHODS (Fixes AttributeErrors) ---
+
+    def update_label_text(self, object_name: str, new_text: str, text_color: str = 'white', bg_color: str = '#333333'):
+        """
+        Updates the text of any QLabel by its object name, setting both foreground (text)
+        and background colors.
+
+        (Note: Added 'text_color' and 'bg_color' as arguments, default bg is dark gray).
+        """
+        label = self._get_widget_by_name(object_name)
+        if label:
+            label.setText(new_text)
+
+            # Define specific colors based on the color string passed from the controller
+            if bg_color == 'green':
+                final_bg_color = "#388E3C"  # Dark Green
+            elif bg_color == 'yellow':
+                final_bg_color = "#FFD600"  # Bright Yellow
+            else:
+                final_bg_color = bg_color  # Use the default or passed color
+
+            # Set styling
+            text_style = (
+                f"background-color: {final_bg_color}; "
+                f"color: {text_color}; "
+                f"font-weight: bold; "
+                f"border: 0px;"
+            )
+            label.setStyleSheet(text_style)
+
+    def update_indicator_status(self, object_name: str, hit_status_color: str, is_current_active: bool):
+        """
+        Handles the styling for Power Mode and Wiper state indicator labels.
+        (Fixes: AttributeError: 'MainWindow' object has no attribute 'update_indicator_status')
+
+        The controller sends the permanent color (Yellow=Never Hit, Green=Once Hit)
+        and the transient state (is_current_active).
+        """
+        label = self._get_widget_by_name(object_name)
+        if label is None:
+            return
+
+        # Define colors for the styling logic
+        YELLOW = "#FFD600"  # Bright Yellow (Never Hit State)
+        GREEN_BRIGHT = "#4CAF50"  # Bright Green (Currently Active)
+        GREEN_DIM = "#C8E6C9"  # Pale Green (Was Hit, Not Current)
+        TEXT_COLOR_DIM = "#444444"  # Dark text for pale/yellow backgrounds
+        TEXT_COLOR_BRIGHT = "white"  # White text for bright green background
+
+        # 1. Determine the permanent color state
+        if hit_status_color == 'yellow':
+            # Has never been achieved: MUST BE BRIGHT YELLOW
+            bg_color = YELLOW
+            text_color = TEXT_COLOR_DIM
+
+        elif hit_status_color == 'green':
+            if is_current_active:
+                # Was achieved AND is currently active: BRIGHT GREEN
+                bg_color = GREEN_BRIGHT
+                text_color = TEXT_COLOR_BRIGHT
+            else:
+                # Was achieved, but is not current: PALE GREEN
+                bg_color = GREEN_DIM
+                text_color = TEXT_COLOR_DIM
+        else:
+            # Fallback
+            bg_color = "lightgray"
+            text_color = "black"
+
+        # 2. Apply the style
+        # Note: We need to use the `label` reference, not `self`.
+        style = (
+            f"background-color: {bg_color}; "
+            f"color: {text_color}; "
+            f"border: 1px solid #1c2a39; "
+            f"border-radius: 5px;"
+        )
+        label.setStyleSheet(style)

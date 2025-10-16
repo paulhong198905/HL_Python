@@ -1,0 +1,8 @@
+2025-10-16 14:30:54.038353  ===== PCAN Bus Trace Log =====
+2025-10-16 14:30:54.038353  This log contains all CAN/CAN-FD messages on the bus.
+2025-10-16 14:30:54.038353  TX = transmitted (echo), RX = received
+2025-10-16 14:30:54.038353  DLC = DLC on physical bus, not length for the data
+2025-10-16 14:30:54.038353  ----------------------------------------
+2025-10-16 14:30:54.039353  Dir Type         CAN_ID       DLC & Len   Data
+2025-10-16 14:30:54.039353  ----------------------------------------
+2025-10-16 14:30:54.040349  RX  STATUS       0x001        DLC_x4 L4   Hex: 00 00 00 00

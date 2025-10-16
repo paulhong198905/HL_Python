@@ -23,9 +23,16 @@ class MainController(QObject):
         self.model.sig_test_progress.connect(self._handle_test_progress)
         self.model.sig_test_finished.connect(self._handle_test_finished)
 
-        # NEW/FIXED: Connect the dedicated WH test result signal
+        # Connect the dedicated WH test result signal
         self.model.sig_wh_test_result.connect(self.handle_wh_test_result)
-        # -------------------------------------------------------------
+
+        # --- NEW CAN Indicator Connections ---
+        # 1. Connect signal for the status indicator lights (Power Mode & Wiper States)
+        self.model.sig_indicator_status_update.connect(self._handle_indicator_status_update)
+
+        # 2. Connect signal for the dynamic Wiper Current State text label
+        self.model.sig_wiper_current_state_update.connect(self._handle_wiper_current_state_text_update)
+        # -------------------------------------
 
     # --- Slots for UI Input (Phase 1: PN Scan) ---
 
@@ -72,8 +79,6 @@ class MainController(QObject):
         """Triggers the model to load full config and start the test sequence."""
         print("Controller Log: Start button clicked. Initiating test sequence.")
         self.view.enable_start_button(False)  # Disable immediately to prevent re-triggering
-        # Fix the method call error from the previous tracebacks
-        # Ensure your CkptModel actually has start_test_sequence() defined!
         self.model.start_test_sequence()
 
     # --- Slots for Model Output (Phase 2: Test Run Progress & Results) ---
@@ -112,3 +117,40 @@ class MainController(QObject):
 
         # Delegate the actual UI update to the View
         self.view.update_wh_result_label(result_message, color)
+
+    # --- NEW Indicator Status Handlers ---
+
+    @Slot(str, str, bool)
+    def _handle_indicator_status_update(self, object_name: str, hit_status_color: str, is_current_active: bool):
+        """
+        Handles updates for Power Mode and Wiper state indicators.
+        The Model provides the 'permanent' color (yellow/green) and whether the state is currently active.
+        """
+        print(
+            f"Controller Log: Indicator update for {object_name}: Color={hit_status_color}, Active={is_current_active}")
+
+        # The View needs a dedicated method to handle the complex state (Color + Active state)
+        self.view.update_indicator_status(object_name, hit_status_color, is_current_active)
+
+    @Slot(str)
+    def _handle_wiper_current_state_text_update(self, state_text: str):
+        """
+        Updates the lbl_Wiper_CurrentState label text and background color.
+
+        Logic: Background Green if state is 'OFF', Yellow otherwise.
+        """
+        upper_state = state_text.upper()
+        display_text = f"WIPER: {state_text}"
+
+        # Determine the background color
+        if upper_state == 'OFF':
+            # Background Green when Wiper state is OFF
+            bg_color = 'green'
+            text_color = 'white'
+        else:
+            # Background Yellow for any other Wiper state (Intermittent, Slow/Low, etc.)
+            bg_color = 'yellow'
+            text_color = 'black'
+
+        # Call the View method, which now accepts the background color argument
+        self.view.update_label_text("lbl_Wiper_CurrentState", display_text, text_color, bg_color)
